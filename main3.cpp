@@ -38,7 +38,40 @@ struct World{
             world[i][49]=1;
         }
 
-        for(int i=0; i<50; i++){
+        //----------------------------------------------------------
+        float densidad=4;
+        int FParedes = densidad * 8; 
+	    densidad = 50*50*densidad / 4;
+        
+        for (int i = 0; i<50; i++) {
+            for (int j = 0; j<50; j++) {
+                if (i==0 || j==0 || i==49 || j==49) world[i][j] = 1;
+			    else world[i][j] = 0; 
+		    }
+	    }
+
+        std::srand(std::time(NULL));
+        for (int i = 0; i < densidad; i++) {
+            int x = std::rand() % (50 - 4) + 2; // 2 18 
+		    x = (x / 2) * 2; 
+		    int y = std::rand()% (50 - 4) + 2;
+		    y = (y / 2) * 2;
+		    world[y][x] = 1; 
+		    for (int j = 0; j < FParedes; j++) {
+                int mx[4] = { x,  x,  x + 2, x - 2 };
+			    int my[4] = { y + 2,y - 2, y ,  y };
+			    int r = std::rand() % 4;
+			    if (world[my[r]][mx[r]] == 0) {
+                    world[my[r]][mx[r]] = 1; 
+				    world[my[r] +( y - my[r])/2][mx[r]+(x- mx[r])/2] = 1;
+			    }
+				
+		    }
+	    }
+
+        //----------------------------------------------------------
+
+        /*for(int i=0; i<50; i++){
             for(int j=0; j<50; j++){
                 int neighbor=0;
 
@@ -52,10 +85,10 @@ struct World{
 
                 building(neighbor, i, j, gen, dis);  
             }
-        }
+        }*/
     }
 
-    void building(int& neighbor, int& i, int& j, std::mt19937& gen, std::uniform_int_distribution<>& dis){
+    /*void building(int& neighbor, int& i, int& j, std::mt19937& gen, std::uniform_int_distribution<>& dis){
         if(neighbor>=4) return;
 
         //SOLO SUMA CUADROS, NO HAY DESCARTE AUN
@@ -86,7 +119,7 @@ struct World{
                 c++;
             }
         }
-    }
+    }*/
 
     void draw(sf::RenderWindow& window){
         sf::RectangleShape wall(sf::Vector2f(TILE, TILE));
@@ -139,8 +172,8 @@ struct A_path{
     std::vector<int> start;
     std::vector<int> target;
 
-    std::vector<int> dx={-1,1,0,0};
-    std::vector<int> dy={0,0,-1,1};
+    std::vector<int> dx={-1,1,0,0,-1,-1,1,1};
+    std::vector<int> dy={0,0,-1,1,-1,1,-1,1};
 
     std::priority_queue<Node> open; //el de mayor valor siempre esta en la cima
 
@@ -229,7 +262,7 @@ struct A_path{
             return;
         }
 
-        for(int k=0;k<4;k++){ //REVISA SUS 8 VECINOS DE ALREDEDOR
+        for(int k=0;k<8;k++){ //REVISA SUS 8 VECINOS DE ALREDEDOR
 
             int nx=cx+dx[k];
             int ny=cy+dy[k];
