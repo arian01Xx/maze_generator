@@ -21,7 +21,7 @@ struct World{
     std::vector<int> center_x={-1,1,0,0};
     std::vector<int> center_y={0,0,-1,1};
 
-    std::vector<std::vector<int>> world{
+    std::vector<std::vector<int>> world={
         50, std::vector<int>(50,0)
     };
 
@@ -30,6 +30,10 @@ struct World{
         std::random_device rd;
         std::mt19937 gen(rd());
         std::uniform_int_distribution<> dis(0, 3);
+
+        for(int i=0;i<50;i++)
+            for(int j=0;j<50;j++)
+                world[i][j]=0;
 
         for(int i=0; i<50; i++){
             world[0][i]=1;
@@ -196,7 +200,7 @@ struct A_path{
         }
     }
 
-    void update(World& w){
+    void update(World& w, bool& game){
 
         if(start.size()<2 || target.size()<2){
             //no inicia afuera del while, sino adentro
@@ -226,8 +230,9 @@ struct A_path{
             w.world[cx][cy]=3;
             reconstruct(w);
             finished=true;
+            game=false;
             return;
-        }
+        }else game=true;
 
         for(int k=0;k<4;k++){ //REVISA SUS 8 VECINOS DE ALREDEDOR
 
@@ -294,9 +299,24 @@ void execute(){
     Target tar;
     tar=start;
 
+    sf::Clock clock;
+    float timer=0;
+    float delay=0.07;
+    bool game=true;
+
     while(window.isOpen()){
         while(const std::optional event=window.pollEvent()){
-            if(event->is<sf::Event::Closed>()) window.close(); 
+            if(event->is<sf::Event::Closed>()) window.close();
+
+            if(const auto* key=event->getIf<sf::Event::KeyPressed>()){
+                if(key->code==sf::Keyboard::Key::Enter && !game){
+                    _w.start.clear();
+                    _w.end.clear();
+
+                    _w.init();
+                    _a=A_path();
+                }
+            }
 
             if(const auto* mousePressed=event->getIf<sf::Event::MouseButtonPressed>()){
                 if(mousePressed->button==sf::Mouse::Button::Left){
@@ -321,9 +341,23 @@ void execute(){
                 }
             }
         }
+
+        /*if(game){
+            if(timer>delay){
+                timer-=delay;
+            }
+        }else{
+            if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Enter)){
+                _w.start.clear();
+                _w.end.clear();
+
+                _w.init();
+                _a=A_path();
+            }
+        } */
         
         window.clear();
-        _a.update(_w);
+        _a.update(_w, game);
         _w.draw(window);
         window.display();
     }
